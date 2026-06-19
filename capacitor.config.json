@@ -1,0 +1,6 @@
+{
+  "appId": "com.taeho.statarena",
+  "appName": "Stat Arena",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>스탯 아레나 (Arena of Stats) - 실시간 스탯 커스텀 대전</title>
+  <!-- Google Fonts: Outfit, Noto Sans KR -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=21">
+</head>
+<body>
+  <!-- Portrait Orientation Warning Overlay -->
+  <div class="portrait-warning-overlay">
+    <div class="warning-box">
+      <span class="warning-icon">🔄</span>
+      <h2>가로 모드 전용</h2>
+      <p>스탯 아레나는 가로 화면에 최적화되어 있습니다.<br>기기의 화면 회전을 켠 후 가로로 돌려주세요!</p>
+    </div>
+  </div>
+
+  <!-- Dynamic Glowing Background -->
+  <div class="bg-glow"></div>
+  <div class="bg-grid"></div>
+
+  <!-- App Container -->
+  <main id="app">
+    
+    <!-- 1. MAIN MENU SCREEN -->
+    <section id="main-menu-screen" class="screen active">
+      <div class="menu-container">
+        <header class="menu-header">
+          <div class="game-logo">
+            <span class="logo-accent">STAT</span> ARENA
+          </div>
+          <p class="game-subtitle">나만의 완벽한 분배로 아레나의 최강자가 되어보세요</p>
+        </header>
+
+        <nav class="menu-nav">
+          <button id="btn-goto-characters" class="menu-btn primary">
+            <span class="btn-icon">⚡</span>
+            <span class="btn-text">내 캐릭터 관리</span>
+          </button>
+          <button id="btn-quick-battle" class="menu-btn secondary">
+            <span class="btn-icon">⚔️</span>
+            <span class="btn-text">바로 대전하기</span>
+          </button>
+          <button id="btn-goto-guide" class="menu-btn tertiary">
+            <span class="btn-icon">📜</span>
+            <span class="btn-text">게임 가이드</span>
+          </button>
+        </nav>
+      </div>
+    </section>
+
+    <!-- 2. CHARACTER SELECTION SCREEN -->
+    <section id="characters-screen" class="screen">
+      <div class="screen-container">
+        <header class="screen-header">
+          <button class="btn-back" data-target="main-menu-screen">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            돌아가기
+          </button>
+          <h1 class="screen-title">내 캐릭터 보관함</h1>
+          <p class="screen-desc">생성된 캐릭터는 최대 6개까지 저장되며, 자유롭게 생성 및 관리할 수 있습니다.</p>
+        </header>
+
+        <!-- 3x2 Grid for Characters -->
+        <div id="character-grid" class="character-grid">
+          <!-- Dynamically populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. CHARACTER CREATOR SCREEN -->
+    <section id="creator-screen" class="screen">
+      <div class="screen-container">
+        <header class="screen-header">
+          <button id="btn-creator-back" class="btn-back">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            취소하기
+          </button>
+          <h1 class="screen-title" id="creator-title">신규 캐릭터 생성</h1>
+          <p class="screen-desc">이름을 정하고 총 100의 능력치를 자유롭게 배분하여 나만의 파이터를 육성하세요.</p>
+        </header>
+
+        <div class="creator-layout">
+          <!-- Left Panel: Input Forms and Stat Sliders -->
+          <div class="creator-panel left-panel card-glass">
+            <div class="input-group">
+              <label for="char-name" class="input-label">캐릭터 이름</label>
+              <input type="text" id="char-name" class="text-input" placeholder="이름을 입력하세요 (최대 10자)" maxlength="10" autocomplete="off">
+            </div>
+
+            <div class="stat-pool-container">
+              <span class="pool-label">분배 가능 스탯</span>
+              <div id="stat-pool-display" class="pool-value">100</div>
+            </div>
+
+            <div class="sliders-list">
+              <!-- Attack Power -->
+              <div class="slider-item" data-stat="atk">
+                <div class="slider-header">
+                  <span class="stat-name">공격력 (ATK)</span>
+                  <span class="stat-value" id="val-atk">5</span>
+                </div>
+                <div class="slider-controls">
+                  <button class="stat-btn btn-minus" data-stat="atk">−</button>
+                  <input type="range" id="slider-atk" class="stat-range" min="5" max="100" value="20">
+                  <button class="stat-btn btn-plus" data-stat="atk">+</button>
+                </div>
+                <span class="stat-desc">수치가 높을수록 한 번의 타격에 강한 피해를 줍니다. (최소 5) ※ 넉백은 치명타 발동 시에만 적용됩니다.</span>
+              </div>
+
+              <!-- Attack Range -->
+              <div class="slider-item" data-stat="rng">
+                <div class="slider-header">
+                  <span class="stat-name">공격사거리 (RNG)</span>
+                  <span class="stat-value" id="val-rng">5</span>
+                </div>
+                <div class="slider-controls">
+                  <button class="stat-btn btn-minus" data-stat="rng">−</button>
+                  <input type="range" id="slider-rng" class="stat-range" min="5" max="100" value="20">
+                  <button class="stat-btn btn-plus" data-stat="rng">+</button>
+                </div>
+                <span class="stat-desc">수치가 높을수록 원거리(블록 사거리) 투사체를 쏩니다. (최소 5)</span>
+              </div>
+
+              <!-- Movement Speed -->
+              <div class="slider-item" data-stat="spd">
+                <div class="slider-header">
+                  <span class="stat-name">이동속도 (SPD)</span>
+                  <span class="stat-value" id="val-spd">5</span>
+                </div>
+                <div class="slider-controls">
+                  <button class="stat-btn btn-minus" data-stat="spd">−</button>
+                  <input type="range" id="slider-spd" class="stat-range" min="0" max="100" value="20">
+                  <button class="stat-btn btn-plus" data-stat="spd">+</button>
+                </div>
+                <span class="stat-desc">전장(블록 그리드) 내에서의 캐릭터 초당 이동 속도입니다. (최소 0)</span>
+              </div>
+
+              <!-- Attack Speed -->
+              <div class="slider-item" data-stat="asp">
+                <div class="slider-header">
+                  <span class="stat-name">공격속도 (ASP)</span>
+                  <span class="stat-value" id="val-asp">5</span>
+                </div>
+                <div class="slider-controls">
+                  <button class="stat-btn btn-minus" data-stat="asp">−</button>
+                  <input type="range" id="slider-asp" class="stat-range" min="5" max="100" value="20">
+                  <button class="stat-btn btn-plus" data-stat="asp">+</button>
+                </div>
+                <span class="stat-desc">수치가 높을수록 더 빠르게 연타 공격을 시전합니다. (최소 5) ※ 수치에 비례해 치명타 확률이 추가로 상승합니다.</span>
+              </div>
+
+              <!-- HP -->
+              <div class="slider-item" data-stat="hp">
+                <div class="slider-header">
+                  <span class="stat-name">체력 (HP)</span>
+                  <span class="stat-value" id="val-hp">5</span>
+                </div>
+                <div class="slider-controls">
+                  <button class="stat-btn btn-minus" data-stat="hp">−</button>
+                  <input type="range" id="slider-hp" class="stat-range" min="5" max="100" value="20">
+                  <button class="stat-btn btn-plus" data-stat="hp">+</button>
+                </div>
+                <span class="stat-desc">전투에서 버틸 수 있는 최대 생명력의 총량입니다. (최소 5) ※ 25이상 분배 시 추가 체력(시작+1, 5포인트 추가당+2) 및 데미지 반감(시작1, 5포인트 추가당+2) 보너스가 적용됩니다.</span>
+              </div>
+            </div>
+
+            <div class="creator-actions flex-row" style="margin-top: 1.5rem; width: 100%;">
+              <button id="btn-try-character" class="action-btn secondary" style="flex: 1;">체험하기</button>
+              <button id="btn-save-character" class="action-btn primary" disabled style="flex: 1.5;">저장하기 (100포인트 필요)</button>
+            </div>
+          </div>
+
+          <!-- Right Panel: Avatar and Radar Chart Preview -->
+          <div class="creator-panel right-panel">
+            <div class="preview-card card-glass">
+              <h3 class="panel-subtitle">외형 및 장비 프리뷰</h3>
+              <div class="avatar-preview-container">
+                <!-- Procedural SVG Avatar will render here -->
+                <div id="avatar-preview"></div>
+              </div>
+            </div>
+
+            <div class="chart-card card-glass">
+              <h3 class="panel-subtitle">스탯 분포도</h3>
+              <div class="chart-container">
+                <canvas id="radar-chart" width="220" height="220"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. BATTLE LOBBY SCREEN -->
+    <section id="battle-lobby-screen" class="screen">
+      <div class="screen-container">
+        <header class="screen-header">
+          <button class="btn-back" data-target="main-menu-screen">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            메인으로
+          </button>
+          <h1 class="screen-title">대기실</h1>
+          <p class="screen-desc">전투에 참여할 파이터를 선택하고 모드를 결정하세요.</p>
+        </header>
+
+        <div class="lobby-layout">
+          <!-- Left: Character List -->
+          <div class="lobby-left panel-glass">
+            <h2 class="panel-title">보유 파이터</h2>
+            <div id="lobby-fighter-list" class="fighter-grid">
+              <!-- Dynamically populated -->
+            </div>
+            
+            <div id="lobby-no-fighter" class="empty-state">
+              <span class="empty-icon">😢</span>
+              <p>보유중인 캐릭터가 없습니다.</p>
+              <button id="btn-lobby-goto-create" class="action-btn primary mt-sm">파이터 생성하러 가기</button>
+            </div>
+          </div>
+
+          <!-- Right: Mode Selection & Status -->
+          <div class="lobby-right panel-glass">
+            <h2 class="panel-title">전투 설정</h2>
+            
+            <div class="mode-selectors">
+              <!-- AI Battle Mode -->
+              <label class="mode-card cursor-pointer">
+                <input type="radio" name="battle-mode" value="ai" checked class="hidden-radio">
+                <div class="mode-card-content">
+                  <div class="mode-icon">🤖</div>
+                  <div class="mode-info">
+                    <span class="mode-title">AI 대전</span>
+                    <span class="mode-desc">선택된 캐릭터와 인공지능 캐릭터의 모의 전투를 치릅니다.</span>
+                  </div>
+                </div>
+              </label>
+
+
+              <!-- Real-time Online PvP Mode -->
+              <label class="mode-card cursor-pointer">
+                <input type="radio" name="battle-mode" value="multiplayer" class="hidden-radio">
+                <div class="mode-card-content">
+                  <div class="mode-icon">🌐</div>
+                  <div class="mode-info">
+                    <span class="mode-title">실시간 온라인 대전</span>
+                    <span class="mode-desc">실제 접속 중인 다른 유저와 웹소켓을 통해 실시간 1:1 대결을 펼칩니다.</span>
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            <!-- AI Difficulty Selection (only shown when AI mode selected) -->
+            <div id="ai-difficulty-container" class="difficulty-container">
+              <label class="input-label">AI 난이도</label>
+              <div class="difficulty-options">
+                <label class="diff-btn"><input type="radio" name="ai-diff" value="easy" checked class="hidden-radio"><span>쉬움 (스탯 80)</span></label>
+                <label class="diff-btn"><input type="radio" name="ai-diff" value="normal" class="hidden-radio"><span>보통 (스탯 100)</span></label>
+                <label class="diff-btn"><input type="radio" name="ai-diff" value="hard" class="hidden-radio"><span>어려움 (스탯 120)</span></label>
+              </div>
+            </div>
+
+            <button id="btn-start-battle" class="action-btn primary large-btn mt-auto" disabled>
+              전투 준비 완료!
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. MATCHMAKING SCREEN -->
+    <section id="matching-screen" class="screen">
+      <div class="matching-container card-glass">
+        <div class="matching-status">
+          <h2 class="status-title">대전 상대 검색 중...</h2>
+          <div class="matching-radar">
+            <div class="radar-sweep"></div>
+            <div class="radar-ping"></div>
+          </div>
+          <p class="status-timer">대기 시간: <span id="matching-timer">00:00</span></p>
+        </div>
+
+        <div class="vs-layout">
+          <!-- Player Card -->
+          <div class="vs-card player-side">
+            <div id="match-player-avatar" class="match-avatar"></div>
+            <div id="match-player-name" class="match-name">플레이어</div>
+            <div class="match-faction">CHALLENGER</div>
+          </div>
+
+          <!-- VS Text -->
+          <div class="vs-divider">VS</div>
+
+          <!-- Opponent Card -->
+          <div class="vs-card opponent-side unknown">
+            <div id="match-opponent-avatar" class="match-avatar">
+              <div class="avatar-shimmer"></div>
+            </div>
+            <div id="match-opponent-name" class="match-name">찾는 중...</div>
+            <div class="match-faction">RANKED FIGHTER</div>
+          </div>
+        </div>
+
+        <button id="btn-cancel-matching" class="action-btn secondary large-btn mt-xl" style="display: none;">매칭 취소</button>
+      </div>
+    </section>
+
+    <!-- 6. BATTLE ARENA SCREEN -->
+    <section id="arena-screen" class="screen">
+      <div class="arena-container">
+        
+        <!-- The Battle Canvas Arena (Contains Canvas and Overlays) -->
+        <div class="canvas-wrapper card-glass">
+          <canvas id="battle-canvas" width="1000" height="420"></canvas>
+          <div id="canvas-overlay-text" class="canvas-center-msg">READY?</div>
+          
+          <!-- Slim Overlaid Health Bars at the Top -->
+          <header class="arena-header mini-overlay">
+            <div class="mini-status player-side">
+              <span id="arena-player-name" class="mini-name">PLAYER</span>
+              <span id="arena-player-rng" class="mini-stat-label">RNG 0</span>
+              <div class="mini-hp-outer">
+                <div id="arena-player-hp-fill" class="mini-hp-fill fill-player" style="width: 100%;"></div>
+              </div>
+              <span id="arena-player-hp-text" class="mini-hp-text">100 / 100</span>
+            </div>
+
+            <div class="mini-vs">VS</div>
+
+            <div class="mini-status opponent-side">
+              <span id="arena-opponent-name" class="mini-name">OPPONENT</span>
+              <span id="arena-opponent-rng" class="mini-stat-label">RNG 0</span>
+              <div class="mini-hp-outer">
+                <div id="arena-opponent-hp-fill" class="mini-hp-fill fill-opponent" style="width: 100%;"></div>
+              </div>
+              <span id="arena-opponent-hp-text" class="mini-hp-text">100 / 100</span>
+            </div>
+          </header>
+
+          <!-- Floating Battle Control Actions -->
+          <div class="arena-floating-actions">
+            <button id="btn-pause-battle" class="floating-btn" title="일시정지">⏸</button>
+            <button id="btn-forfeit-battle" class="floating-btn danger" title="항복하기">🏳️</button>
+          </div>
+
+          <!-- Mobile Touch Controls -->
+          <div class="touch-controls-container">
+            <div class="touch-controls-left">
+              <div id="joystick-container">
+                <div id="joystick-knob"></div>
+              </div>
+            </div>
+            <div class="touch-controls-right">
+              <button id="btn-touch-attack" class="touch-btn attack-btn" data-key="Space">⚔️</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 7. GAME GUIDE SCREEN -->
+    <section id="guide-screen" class="screen">
+      <div class="screen-container">
+        <header class="screen-header">
+          <button class="btn-back" data-target="main-menu-screen">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            메인으로
+          </button>
+          <h1 class="screen-title">게임 가이드</h1>
+          <p class="screen-desc">스탯의 분배가 미치는 영향과 최강 전투 덱을 빌드하는 팁을 배웁니다.</p>
+        </header>
+
+        <div class="guide-content card-glass">
+          <h2>📊 각 능력치별 메커니즘</h2>
+          <table class="guide-table">
+            <thead>
+              <tr>
+                <th>능력치 (Stat)</th>
+                <th>전투 인게임 반영 공식</th>
+                <th>전략적 특징</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>공격력 (ATK)</strong></td>
+                <td>기본 데미지 = 공격력 스탯 수치 그대로 (최소 5)</td>
+                <td>수치만큼의 정확한 데미지를 적에게 입힙니다.</td>
+              </tr>
+              <tr>
+                <td><strong>사거리 (RNG)</strong></td>
+                <td>공격 범위 = 최대 분배치 85일 때 20블록(전장 전체 1000px) 타격 가능 (공식: 스탯 * (1000 / 85)px)</td>
+                <td>스탯 5일 때 근접 공격을 하고, 스탯 6 이상일 때 투사체를 발사하며 해당 사거리를 날아가다 소멸합니다. (최소 5)</td>
+              </tr>
+              <tr>
+                <td><strong>이동속도 (SPD)</strong></td>
+                <td>속도 = 10 스탯당 1초에 블록 1칸 이동 (최소 0)</td>
+                <td>이동속도 20이면 1초에 2칸의 블록을 움직이며, 플레이어가 키보드로 직접 조종합니다. 0일 경우 제자리에 고정됩니다.</td>
+              </tr>
+              <tr>
+                <td><strong>공격속도 (ASP)</strong></td>
+                <td>공격 횟수 = 10 스탯당 1초에 1번 타격 (최소 5)</td>
+                <td>공격속도가 20이면 1초에 2회 공격(대기 시간 0.5초)을 퍼붓습니다.</td>
+              </tr>
+              <tr>
+                <td><strong>체력 (HP)</strong></td>
+                <td>최대 체력 = 체력 스탯 수치 그대로 (최소 5)</td>
+                <td>최대 생명력의 총량입니다. 수치가 그대로 반영됩니다.</td>
+              </tr>
+              <tr>
+                <td><strong>점프 (Jump)</strong></td>
+                <td>조작: W 또는 ↑ Key</td>
+                <td>공중으로 도약하여 적의 근접 타격이나 원거리 투사체를 타이밍에 맞춰 완벽히 공중 회피할 수 있습니다. (AI 봇도 난이도별 확률로 회피 점프 시전)</td>
+              </tr>
+              <tr>
+                <td><strong>치명타 (Crit)</strong></td>
+                <td>확률 기반 또는 배후 공격 시 100% 발동 (배율: 1.4배)</td>
+                <td>상대의 뒤(등 뒤)에서 공격을 성공시키면 항상 치명타가 터지며 1.4배의 피해와 함께 강력한 넉백을 가합니다.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h2 class="mt-xl">🔥 대표적인 추천 아키타입(Archetypes)</h2>
+          <div class="archetypes-grid">
+            <div class="archetype-card">
+              <h3>🏹 레인저 (스나이퍼)</h3>
+              <p class="archetype-stats">ATK 30 | RNG 45 | SPD 10 | ASP 10 | HP 5</p>
+              <p>긴 사거리를 확보하고 뒤로 무빙하며 강력한 마탄으로 상대를 원거리에서 저격해 사살합니다.</p>
+            </div>
+            <div class="archetype-card">
+              <h3>🛡️ 철벽 가디언 (탱커)</h3>
+              <p class="archetype-stats">ATK 10 | RNG 5 | SPD 0 | ASP 15 | HP 70</p>
+              <p>압도적인 체력 통으로 버티며 제자리에서 서서히 다가오는 적을 강력한 방패와 가시로 응징합니다.</p>
+            </div>
+            <div class="archetype-card">
+              <h3>⚔️ 고속 어쌔신 (딜러)</h3>
+              <p class="archetype-stats">ATK 35 | RNG 5 | SPD 20 | ASP 30 | HP 10</p>
+              <p>빠르게 접근하여 극상의 연속 근접 칼날을 휘두르며 상대를 순식간에 녹여버립니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- NATIVE MODAL DIALOG FOR BATTLE RESULTS -->
+  <dialog id="battle-result-dialog" closedby="any">
+    <div class="result-dialog-content">
+      <header class="result-header">
+        <h2 id="result-title" class="result-title">승리!</h2>
+        <p id="result-subtitle">축하합니다! 완벽한 스탯의 승리입니다.</p>
+      </header>
+
+      <div class="result-vs-summary">
+        <div class="summary-char player-char">
+          <div id="result-player-avatar" class="result-avatar"></div>
+          <div id="result-player-name" class="result-name">플레이어</div>
+        </div>
+        <div class="summary-vs">VS</div>
+        <div class="summary-char opponent-char">
+          <div id="result-opponent-avatar" class="result-avatar"></div>
+          <div id="result-opponent-name" class="result-name">상대</div>
+        </div>
+      </div>
+      <footer class="result-actions">
+        <button id="btn-result-rematch" class="action-btn primary">다시 매치하기</button>
+        <button id="btn-result-lobby" class="action-btn secondary">대기실로 돌아가기</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- JS Scripts -->
+  <script src="game.js?v=21"></script>
+</body>
+</html>
